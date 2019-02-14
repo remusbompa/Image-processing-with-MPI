@@ -1,0 +1,38 @@
+/* BOMPA REMUS 335CB */
+
+- Functia principala initializeaza numarul de filtre nrFilters si vectorul de filtre nameFilters
+- procesul 0 citeste fisierul prin apelul functiei readInput(argv[1], &in), care construieste
+imaginea de intrare prin completarea campurilor structurii de tipul image in
+- se creeaza un vector de P elemente GroupP, fiecare avand un camp start si un camp stop, pentru
+a retine numarul pixelului de inceput (start) si al celui de final (stop), pe care ii prelucrea-
+za un anumit proces (pixelii se numeroteaza de la 0 incepand cu coltul din stanga sus, pana in
+cel din dreapta jos)
+- procesul 0 trimite catre toate celelalte procese: un vector de 5 parametri, continand numerele
+pixelilor de start si end, tipul imaginii, width si height
+- cum fiecare pixel, pentru a fi procesat are nevoie de toti vecinii sai, fiecare proces are 
+nevoie, pe langa pixelii pe care ii proceseaza si de vecinii primei si a ultimei linii de pixeli
+pe care ii proceseaza (de la vecinul din stanga sus al primullui pixel, de start, la vecinul 
+din dreapta jos al ultimului bit, de end). Astfel, fiecare proces va mai primi in plus niste
+pixeli
+-functia copyMatrix(int tip, void* pixels, void* buf, int start, int end, int width), copie in
+buffer ul buf matricea de pixeli pixels, de la pixelul de start la cel de end
+-procesul 0 trimite acesti pixeli spre fiecare proces
+-procesul 0 initializeaza imaginea de iesire prin structura out de tipul image, iar celelallte 
+procese, primesc parametrii trimisi de procesul 0
+-toate procesele apeleaza functia void computePixels(int* param, int rank), care primeste 
+pixelii trimisi de procesul 0 si pentru fiecare filtru parcurge pixelii de la start la end, lasa
+pixelii de la margine nemodificati si aplica filtrul folosind functia aplicaFiltruColor(ColorP*
+newPixel, float k[3][3], ColorP vecini[3][3]) sau aplicaFiltruGrayscale(GrayscaleP* newPixel,
+float k[3][3], GrayscaleP vecini[3][3]), in functie de tipul imaginii
+-dupa ce se aplica filtrul pe pixelii de la start la stop, trebuie trimisi pixelii procesati
+de care mai au nevoie si celelalte procese: pixelii care pentru un proces se afla in stanga lui
+start sau in dreapta lui end. Astfel, fiecare proces realizeaza succesiv urmatoarele actiuni:
+primesc mesaj din stanga, trimit mesaj in dreapta, primesc mesaj din dreapta, trimit mesaj in
+stanga
+-dupa ultimul filtru, procesele trimit pixelii de la start la end procesati spre procesul 0
+-procesul 0 primeste pixelii de la toate celelalte procese si ii scrie in matricea pixelilor
+structurii out iar fisierul de iesire este scris prin apelul writeData(argv[2], &out)
+-functia void copyBuffer(int tip, void* pixels, void* buf, int start, int end, int width), scrie
+pixelii din buffer ul buf in matricea de pixeli pixels, de la pixelul cu numarul start la cel
+cu numarul end.
+
